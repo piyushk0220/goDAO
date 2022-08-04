@@ -3,5 +3,5 @@ package model
 import "errors"
 
 var (
-	ErrNotFound = errors.New("Resquesed item is not found")
+	ErrNotFound = errors.New("requested item is not found")
 )

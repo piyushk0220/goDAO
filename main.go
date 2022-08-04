@@ -13,10 +13,10 @@ import (
 )
 
 func main() {
-	dbName := os.Getenv("goDb")
-	dbPass := os.Getenv("root")
-	dbHost := os.Getenv("localhost")
-	dbPort := os.Getenv("3306")
+	dbName := "godb"
+	dbPass := "root"
+	dbHost := "localhost"
+	dbPort := "3306"
 
 	connection, err := driver.ConnectSQL(dbHost, dbPort, "root", dbPass, dbName)
 	if err != nil {

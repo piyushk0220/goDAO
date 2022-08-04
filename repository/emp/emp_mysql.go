@@ -48,9 +48,8 @@ func (m *mysqlEmpRepo) Fetch(ctx context.Context, num int64) ([]*model.Employee,
 
 	return m.fetch(ctx, query, num)
 }
-
 func (m *mysqlEmpRepo) GetByID(ctx context.Context, id int64) (*model.Employee, error) {
-	query := "Select id, title, content From employees where id=?"
+	query := "Select id, name, skill From employees where id=?"
 
 	rows, err := m.fetch(ctx, query, id)
 	if err != nil {
@@ -68,7 +67,7 @@ func (m *mysqlEmpRepo) GetByID(ctx context.Context, id int64) (*model.Employee, 
 }
 
 func (m *mysqlEmpRepo) Create(ctx context.Context, p *model.Employee) (int64, error) {
-	query := "Insert employees SET title=?, content=?"
+	query := "Insert employees SET name=?, skill=?"
 
 	stmt, err := m.Conn.PrepareContext(ctx, query)
 	if err != nil {
