@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-
 	"src/DaoInterface/driver"
 	ph "src/DaoInterface/handler"
+	"src/DaoInterface/repository"
+	"src/DaoInterface/service"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -23,12 +24,14 @@ func main() {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+	mySql := repository.NewSQLEmpRepo(connection.SQL)
+	serv := service.NewEmpService(mySql)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
 
-	pHandler := ph.NewEmpHandler(connection)
+	pHandler := ph.NewEmpHandler(serv)
 	r.Route("/", func(rt chi.Router) {
 		rt.Mount("/employees", employeeRouter(pHandler))
 	})

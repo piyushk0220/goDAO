@@ -6,31 +6,32 @@ import (
 	"net/http"
 	"strconv"
 
-	"src/DaoInterface/driver"
+	"src/DaoInterface/service"
 
 	"github.com/go-chi/chi"
 
 	models "src/DaoInterface/model"
-	repository "src/DaoInterface/repository"
-	employee "src/DaoInterface/repository/emp"
 )
 
 // NewPostHandler ...
-func NewEmpHandler(db *driver.DB) *Employee {
+func NewEmpHandler(ser service.EmpService) *Employee {
 	return &Employee{
-		repo: employee.NewSQLEmpRepo(db.SQL),
+		service: ser,
 	}
 }
 
 // Post ...
 type Employee struct {
-	repo repository.EmpRepo
+	service service.EmpService
 }
 
 // Fetch all emp data
 func (p *Employee) Fetch(w http.ResponseWriter, r *http.Request) {
-	payload, _ := p.repo.Fetch(r.Context(), 5)
-
+	payload, err := p.service.Fetch()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Server Error")
+		return
+	}
 	respondwithJSON(w, http.StatusOK, payload)
 }
 
@@ -39,10 +40,11 @@ func (p *Employee) Create(w http.ResponseWriter, r *http.Request) {
 	emp := models.Employee{}
 	json.NewDecoder(r.Body).Decode(&emp)
 
-	newID, err := p.repo.Create(r.Context(), &emp)
+	newID, err := p.service.Create(&emp)
 	fmt.Println(newID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Server Error")
+		return
 	}
 
 	respondwithJSON(w, http.StatusCreated, map[string]string{"message": "Successfully Created"})
@@ -53,10 +55,11 @@ func (p *Employee) Update(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	data := models.Employee{Id: int64(id)}
 	json.NewDecoder(r.Body).Decode(&data)
-	payload, err := p.repo.Update(r.Context(), &data)
+	payload, err := p.service.Update(&data)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Server Error")
+		return
 	}
 
 	respondwithJSON(w, http.StatusOK, payload)
@@ -65,10 +68,11 @@ func (p *Employee) Update(w http.ResponseWriter, r *http.Request) {
 // GetByID returns a emp details
 func (p *Employee) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	payload, err := p.repo.GetByID(r.Context(), int64(id))
+	payload, err := p.service.GetByID(int64(id))
 
 	if err != nil {
 		respondWithError(w, http.StatusNoContent, "Content not found")
+		return
 	}
 
 	respondwithJSON(w, http.StatusOK, payload)
@@ -77,10 +81,11 @@ func (p *Employee) GetByID(w http.ResponseWriter, r *http.Request) {
 // Delete a emp
 func (p *Employee) Delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	_, err := p.repo.Delete(r.Context(), int64(id))
+	_, err := p.service.Delete(int64(id))
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Server Error")
+		return
 	}
 
 	respondwithJSON(w, http.StatusMovedPermanently, map[string]string{"message": "Delete Successfully"})
